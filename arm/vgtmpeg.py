@@ -31,7 +31,7 @@ def vgtmpeg_mainfeature(srcpath, basepath, logfile, disc):
     elif disc.disctype == "bluray":
         vg_args = cfg['VG_ARGS_BD']
 
-    cmd = 'nice {0} -i {1} {2} "{3}" >> {4} 2>&1'.format(
+    cmd = 'export LD_LIBRARY_PATH=/usr/local/lib && nice {0} -i {1} {2} "{3}" >> {4} 2>&1'.format(
         cfg['VGTMPEG_CLI'],
         shlex.quote(srcpath),
         vg_args,
