@@ -27,11 +27,9 @@ def vgtmpeg_mainfeature(srcpath, basepath, logfile, disc):
     logging.info("Ripping title Mainfeature to " + shlex.quote(filepathname))
 
     if disc.disctype == "dvd":
-        vg_args = cfg['VG_ARGS_DVD']
-        vg_preset = cfg['VG_PRESET_DVD']
+        vg_args = cfg['VG_ARGS_DVD']        
     elif disc.disctype == "bluray":
         vg_args = cfg['VG_ARGS_BD']
-        vg_preset = cfg['VG_PRESET_BD']
 
     cmd = 'nice {0} -i {1} {2} "{3}" >> {4} 2>&1'.format(
         cfg['VGTMPEG_CLI'],
