@@ -13,6 +13,7 @@ import utils
 import makemkv
 import handbrake
 import identify
+import vgtmpeg
 
 from config import cfg
 from classes import Disc
@@ -118,98 +119,102 @@ def main(logfile, disc):
 
         # Do the work!
         hbinpath = str(disc.devpath)
-        if disc.disctype == "bluray" or not cfg['MAINFEATURE']:
-            # send to makemkv for ripping
-            # run MakeMKV and get path to ouput
-            mkvoutpath = makemkv.makemkv(logfile, disc)
-            if mkvoutpath is None:
-                logging.error("MakeMKV did not complete successfully.  Exiting ARM!")
-                sys.exit()
-            if cfg['NOTIFY_RIP']:
-                utils.notify("ARM notification", str(disc.videotitle + " rip complete.  Starting transcode."))
-            # point HB to the path MakeMKV ripped to
-            hbinpath = mkvoutpath
+        vgtmpeg.vgtmpeg_mainfeature(hbinpath, hboutpath, logfile, disc)
 
-            if cfg['SKIP_TRANSCODE'] and cfg['RIPMETHOD'] == "mkv":
-                logging.info("SKIP_TRANSCODE is true.  Moving raw mkv files.")
-                logging.info("NOTE: Identified main feature may not be actual main feature")
-                files = os.listdir(mkvoutpath)
-                final_directory = hboutpath
-                if disc.videotype == "movie":
-                    logging.debug("Videotype: " + disc.videotype)
-                    # if videotype is movie, then move biggest title to media_dir
-                    # move the rest of the files to the extras folder
+        #TODO: update logic to select vgtmpeg only when needed 
 
-                    # find largest filesize
-                    logging.debug("Finding largest file")
-                    largest_file_name = ""
-                    for f in files:
-                        # initialize largest_file_name
-                        if largest_file_name == "":
-                            largest_file_name = f
-                        temp_path_f = os.path.join(hbinpath, f)
-                        temp_path_largest = os.path.join(hbinpath, largest_file_name)
-                        # os.path.join(cfg['MEDIA_DIR'] + videotitle)
-                        # if cur file size > largest_file size
-                        if(os.stat(temp_path_f).st_size > os.stat(temp_path_largest).st_size):
-                            largest_file_name = f
-                    # largest_file should be largest file
-                    logging.debug("Largest file is: " + largest_file_name)
-                    temp_path = os.path.join(hbinpath, largest_file_name)
-                    if(os.stat(temp_path).st_size > 0):  # sanity check for filesize
-                        for f in files:
-                            # move main into media_dir
-                            # move others into extras folder
-                            if(f == largest_file_name):
-                                # largest movie
-                                utils.move_files(hbinpath, f, disc.hasnicetitle, disc.videotitle + " (" + disc.videoyear + ")", True)
-                            else:
-                                # other extras
-                                if not str(cfg['EXTRAS_SUB']).lower() == "none":
-                                    utils.move_files(hbinpath, f, disc.hasnicetitle, disc.videotitle + " (" + disc.videoyear + ")", False)
-                                else:
-                                    logging.info("Not moving extra: " + f)
-                    # Change final path (used to set permissions)
-                    final_directory = os.path.join(cfg['MEDIA_DIR'], disc.videotitle + " (" + disc.videoyear + ")")
-                    # Clean up
-                    logging.debug("Attempting to remove extra folder in ARMPATH: " + hboutpath)
-                    try:
-                        shutil.rmtree(hboutpath)
-                        logging.debug("Removed sucessfully: " + hboutpath)
-                    except Exception:
-                        logging.debug("Failed to remove: " + hboutpath)
-                else:
-                    # if videotype is not movie, then move everything
-                    # into 'Unidentified' folder
-                    logging.debug("Videotype: " + disc.videotype)
+        # if disc.disctype == "bluray" or not cfg['MAINFEATURE']:
+        #     # send to makemkv for ripping
+        #     # run MakeMKV and get path to ouput
+        #     mkvoutpath = makemkv.makemkv(logfile, disc)
+        #     if mkvoutpath is None:
+        #         logging.error("MakeMKV did not complete successfully.  Exiting ARM!")
+        #         sys.exit()
+        #     if cfg['NOTIFY_RIP']:
+        #         utils.notify("ARM notification", str(disc.videotitle + " rip complete.  Starting transcode."))
+        #     # point HB to the path MakeMKV ripped to
+        #     hbinpath = mkvoutpath
 
-                    for f in files:
-                        mkvoutfile = os.path.join(mkvoutpath, f)
-                        logging.debug("Moving file: " + mkvoutfile + " to: " + mkvoutpath + f)
-                        shutil.move(mkvoutfile, hboutpath)
-                # remove raw files, if specified in config
-                if cfg['DELRAWFILES']:
-                    logging.info("Removing raw files")
-                    shutil.rmtree(mkvoutpath)
-                # set file to default permissions '777'
-                if cfg['SET_MEDIA_PERMISSIONS']:
-                    perm_result = utils.set_permissions(final_directory)
-                    logging.info("Permissions set successfully: " + str(perm_result))
-                utils.notify("ARM notification", str(disc.videotitle) + " processing complete.")
-                logging.info("ARM processing complete")
-                # exit
-                sys.exit()
+        #     if cfg['SKIP_TRANSCODE'] and cfg['RIPMETHOD'] == "mkv":
+        #         logging.info("SKIP_TRANSCODE is true.  Moving raw mkv files.")
+        #         logging.info("NOTE: Identified main feature may not be actual main feature")
+        #         files = os.listdir(mkvoutpath)
+        #         final_directory = hboutpath
+        #         if disc.videotype == "movie":
+        #             logging.debug("Videotype: " + disc.videotype)
+        #             # if videotype is movie, then move biggest title to media_dir
+        #             # move the rest of the files to the extras folder
 
-        if disc.disctype == "bluray" and cfg['RIPMETHOD'] == "mkv":
-            handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, disc)
-        elif disc.disctype == "dvd" and not cfg['MAINFEATURE']:
-            handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, disc)
-        elif disc.videotype == "movie" and cfg['MAINFEATURE']:
-            handbrake.handbrake_mainfeature(hbinpath, hboutpath, logfile, disc)
-            disc.eject()
-        else:
-            handbrake.handbrake_all(hbinpath, hboutpath, logfile, disc)
-            disc.eject()
+        #             # find largest filesize
+        #             logging.debug("Finding largest file")
+        #             largest_file_name = ""
+        #             for f in files:
+        #                 # initialize largest_file_name
+        #                 if largest_file_name == "":
+        #                     largest_file_name = f
+        #                 temp_path_f = os.path.join(hbinpath, f)
+        #                 temp_path_largest = os.path.join(hbinpath, largest_file_name)
+        #                 # os.path.join(cfg['MEDIA_DIR'] + videotitle)
+        #                 # if cur file size > largest_file size
+        #                 if(os.stat(temp_path_f).st_size > os.stat(temp_path_largest).st_size):
+        #                     largest_file_name = f
+        #             # largest_file should be largest file
+        #             logging.debug("Largest file is: " + largest_file_name)
+        #             temp_path = os.path.join(hbinpath, largest_file_name)
+        #             if(os.stat(temp_path).st_size > 0):  # sanity check for filesize
+        #                 for f in files:
+        #                     # move main into media_dir
+        #                     # move others into extras folder
+        #                     if(f == largest_file_name):
+        #                         # largest movie
+        #                         utils.move_files(hbinpath, f, disc.hasnicetitle, disc.videotitle + " (" + disc.videoyear + ")", True)
+        #                     else:
+        #                         # other extras
+        #                         if not str(cfg['EXTRAS_SUB']).lower() == "none":
+        #                             utils.move_files(hbinpath, f, disc.hasnicetitle, disc.videotitle + " (" + disc.videoyear + ")", False)
+        #                         else:
+        #                             logging.info("Not moving extra: " + f)
+        #             # Change final path (used to set permissions)
+        #             final_directory = os.path.join(cfg['MEDIA_DIR'], disc.videotitle + " (" + disc.videoyear + ")")
+        #             # Clean up
+        #             logging.debug("Attempting to remove extra folder in ARMPATH: " + hboutpath)
+        #             try:
+        #                 shutil.rmtree(hboutpath)
+        #                 logging.debug("Removed sucessfully: " + hboutpath)
+        #             except Exception:
+        #                 logging.debug("Failed to remove: " + hboutpath)
+        #         else:
+        #             # if videotype is not movie, then move everything
+        #             # into 'Unidentified' folder
+        #             logging.debug("Videotype: " + disc.videotype)
+
+        #             for f in files:
+        #                 mkvoutfile = os.path.join(mkvoutpath, f)
+        #                 logging.debug("Moving file: " + mkvoutfile + " to: " + mkvoutpath + f)
+        #                 shutil.move(mkvoutfile, hboutpath)
+        #         # remove raw files, if specified in config
+        #         if cfg['DELRAWFILES']:
+        #             logging.info("Removing raw files")
+        #             shutil.rmtree(mkvoutpath)
+        #         # set file to default permissions '777'
+        #         if cfg['SET_MEDIA_PERMISSIONS']:
+        #             perm_result = utils.set_permissions(final_directory)
+        #             logging.info("Permissions set successfully: " + str(perm_result))
+        #         utils.notify("ARM notification", str(disc.videotitle) + " processing complete.")
+        #         logging.info("ARM processing complete")
+        #         # exit
+        #         sys.exit()
+
+        # if disc.disctype == "bluray" and cfg['RIPMETHOD'] == "mkv":
+        #     handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, disc)
+        # elif disc.disctype == "dvd" and not cfg['MAINFEATURE']:
+        #     handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, disc)
+        # elif disc.videotype == "movie" and cfg['MAINFEATURE']:
+        #     handbrake.handbrake_mainfeature(hbinpath, hboutpath, logfile, disc)
+        #     disc.eject()
+        # else:
+        #     handbrake.handbrake_all(hbinpath, hboutpath, logfile, disc)
+        #     disc.eject()
 
         # report errors if any
         if disc.errors:

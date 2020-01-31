@@ -137,6 +137,22 @@ HB_ARGS_DVD: "--subtitle scan -F"
 # Additional Handbrake arguments for Bluray Discs.
 HB_ARGS_BD: "--subtitle scan -F --subtitle-burned --audio-lang-list eng --all-audio"
 
+########################
+## vgtmpeg Parameters ##
+########################
+
+# vgtmpeg binary to call
+VGTMGEG_CLI: vgtmpeg
+
+# Extension of the final video file
+DEST_EXT: mkv
+
+# Additional vgtmpeg arguments for DVDs.  
+VG_ARGS_DVD: "-c:v copy -c:a copy"
+
+# Additional Handbrake arguments for Bluray Discs.
+# HB_ARGS_BD: "--subtitle scan -F --subtitle-burned --audio-lang-list eng --all-audio"
+
 #####################
 ## Emby Parameters ##
 #####################
