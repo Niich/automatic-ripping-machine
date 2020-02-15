@@ -5,6 +5,7 @@
 import yaml
 
 yamlfile = "/etc/arm/arm.yaml"
+machineYaml = "/etc/arm/machineSettings.yaml"
 # cfgfile = "/etc/arm/arm.conf"
 
 # if os.path.exists(yamlfile):
@@ -28,3 +29,6 @@ yamlfile = "/etc/arm/arm.yaml"
 
 with open(yamlfile, "r") as f:
     cfg = yaml.load(f, Loader=yaml.FullLoader)
+
+with open(machineYaml, "r") as f:
+    cfgM = yaml.load(f, Loader=yaml.FullLoader)

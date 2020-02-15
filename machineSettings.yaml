@@ -1,0 +1,28 @@
+
+# pins
+MM_SPEED: 11
+MM_FORWARD: 13
+MM_REVERSE: 15
+GRIPPER: 12
+DVD_SWITCH: 7
+CENTER_SWITCH: 18
+
+# constraints
+
+# DC motor settings
+MM_MIN_SPEED: 25
+MM_MAX_SPEED: 60
+MM_ACCEL_DELAY: 0.02
+MM_DECEL_DELAY: 0.5
+
+# DC motor step settings
+MM_STEP_SPEED: 55
+MM_STEP_DURATION: 0.03
+MM_STEP_DELAY: 0.18
+# Above tray postion tuneing settings
+POS_TIME_FROM_TRAY: 1
+POS_STEPS_FROM_CENTER: 25
+
+# Gripper servo settings
+GRIPPER_OPEN: 8
+GRIPPER_CLOSED: 10

@@ -211,9 +211,12 @@ def main(logfile, disc):
             elif cfg['VGTMPEG']:
                 # TODO build the vgtmpeg_mkv function.
                 # vgtmpeg.vgtmpeg_mkv(hbinpath, hboutpath, logfile, disc)
+                vgtmpeg.vgtmpeg_mainfeature(hbinpath, hboutpath, logfile, disc)
             else:
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
-            logging.info("ARM processing complete")
+
+            disc.eject()
+            logging.info("ARM bluray processing complete")
 
         elif disc.disctype == "dvd" and not cfg['MAINFEATURE']:
             if cfg['HANDBRAKE']:
@@ -225,17 +228,21 @@ def main(logfile, disc):
                 vgtmpeg.vgtmpeg_mainfeature(hbinpath, hboutpath, logfile, disc)
             else:
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
-            logging.info("ARM processing complete")
+
+            logging.info("ARM dvd processing complete")
+            disc.eject()
 
         elif disc.videotype == "movie" and cfg['MAINFEATURE']:
-            if cfg['HANDBRAKE']
+            if cfg['HANDBRAKE']:
                 handbrake.handbrake_mainfeature(hbinpath, hboutpath, logfile, disc)
             elif cfg['VGTMPEG']:
                 vgtmpeg.vgtmpeg_mainfeature(hbinpath, hboutpath, logfile, disc)
             else:
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
-            logging.info("ARM processing complete")
+
+            logging.info("ARM movie processing complete")
             disc.eject()
+
         else:
             handbrake.handbrake_all(hbinpath, hboutpath, logfile, disc)
             disc.eject()
