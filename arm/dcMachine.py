@@ -9,6 +9,10 @@ from enums import Gripper
 from config import cfgM
 
 def start():
+    """Fucntion to init all the GPIO configs.
+    
+    Needs to be ran before any other functions or the GPIO commands will fail.
+    """
     # setup pins
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(cfgM["MM_SPEED"], GPIO.OUT)
@@ -38,6 +42,14 @@ def setupGripperPwm():
 # globals are used in the callbacks and need to also be used in any function
 # that relies on the callback since they execute in a seperate thread.
 def homeDVDCallback(channel):
+    """ Callback for DVD switch that also forces movement to stop.
+    
+    Sets the DVD status changed to true and forces all movemnt to stop.
+    Also includes a false detect check.
+
+    Movemnt is stopped and then the pin status is checked. 
+    This allows for bounce to settle before reading the pin, to reduce false detects caused by vibration.
+    """
     global dvdPinStatusChanged, dvdSwitchStatus
     #print("dvd change detected")
     GPIO.output(cfgM["MM_FORWARD"], GPIO.LOW)
@@ -50,6 +62,11 @@ def homeDVDCallback(channel):
           
 
 def homeCenterCallback(channel):
+    """ Callback for center switch that also forces the movement to stop.
+
+    Sets the global center status to true when the switch is pressed.
+    Also sents all the movement pins to LOW so that all movement stops.
+    """
     global centerStatusChanged
     centerStatusChanged = True
     GPIO.output(cfgM["MM_FORWARD"], GPIO.LOW)
@@ -57,11 +74,19 @@ def homeCenterCallback(channel):
     
 
 def detectCenterCallback(channel):
+    """Callback for the center switch.
+    
+    Sets the global center status to true when the switch is pressed.
+    """
     global centerStatusChanged
     centerStatusChanged = True
     
 
 def monitorDVDswitch():
+    """ Funtion for monitoring the switch in the DVD arm.
+
+    Monitors the status of the DVD switch and listens for changes
+    """
     global dvdPinStatusChanged
     dvdPinStatusChanged = False
     global dvdSwitchStatus
@@ -75,7 +100,12 @@ def monitorDVDswitch():
     GPIO.add_event_callback(cfgM["DVD_SWITCH"], callback=homeDVDCallback)
 
 def home():
-    global pwmMotor
+    """ Homing funtion
+
+    funtion that should be ran anytime the position is unknown.
+    
+    Uses a series of moves and sensor detects to find a known position, either the tray or the stack.
+    """
     global dvdPinStatusChanged
     dvdPinStatusChanged = False
     global currentLocation
@@ -135,6 +165,15 @@ def home():
     return currentLocation
 
 def moveToPosition(currentPosition,requestedPosition):
+    """ This fucntion accepts two Position(ENUM) arguments and performs a series of moves.
+
+    First arg is the current position.
+    Second arg is the desired position.
+
+    Based on these arguments a series of actions are performed to move form the curent
+    postion to the desired position.
+    """
+
     print("Current: " + currentPosition.name + " Requested: " + requestedPosition.name)
     if currentPosition == Position.UNKNOWN:
            currentPosition = home()
@@ -169,7 +208,11 @@ def moveToPosition(currentPosition,requestedPosition):
             print("current speed is: " + str(currentSpeed))
             for i in range(cfgM["POS_STEPS_FROM_CENTER"]):
                 stepMove(direction)
-            stepTillDetect(direction)
+            #stepTillDetect(direction)
+            # verifiy that the arm is on the tray and if not keep moving till it is
+            while not GPIO.input(cfgM["DVD_SWITCH"]):
+                stepTillDetect(direction)
+                time.sleep(.5)
 
             newPosition = requestedPosition
         elif requestedPosition == Position.ABOVE_TRAY:
@@ -189,7 +232,9 @@ def moveToPosition(currentPosition,requestedPosition):
             # move to tray
             direction = cfgM["MM_FORWARD"] # set the direction for this move
             logging.info("move to tray")
-            stepTillDetect(direction)
+            while not GPIO.input(cfgM["DVD_SWITCH"]):
+                stepTillDetect(direction)
+                time.sleep(.5)
 
             newPosition = requestedPosition
         elif requestedPosition == Position.STACK:
