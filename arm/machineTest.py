@@ -40,20 +40,6 @@ def main():
     machine.moveToPosition(Position.STACK)
 
 
-    # time.sleep(1)
-    # machine.gripperAction(Gripper.STOP_GRIPPING)
-    # machine.moveToPosition(Position.ABOVE_TRAY)
-    # time.sleep(1)
-    # machine.moveToPosition(Position.STACK)
-    # machine.gripperAction(Gripper.STOP_GRIPPING)
-    # time.sleep(10)
-    # machine.gripperAction(Gripper.GRIP)
-    # time.sleep(1)
-    # machine.moveToPosition(Position.TRAY)
-    # time.sleep(1)
-    # machine.gripperAction(Gripper.STOP_GRIPPING)
-    # time.sleep(1)
-    # machine.moveToPosition(Position.ABOVE_TRAY)
 
 
 
