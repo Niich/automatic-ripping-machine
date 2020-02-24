@@ -266,21 +266,29 @@ def changeDisk(currentPosition,disk):
     
 
     # move to safe location above tray before opening disk drive
-    if currentPosition != Position.ABOVE_TRAY:
+    if currentPosition == Position.TRAY:
         currentPosition = moveToPosition(currentPosition,Position.ABOVE_TRAY)
     
     # open tray and try to remove a disk if there is any
     disk.eject()                                                            # open tray
-    gripper(Gripper.STOP_GRIPPING)                        # close gripper so it fits in a disk
+    gripper(Gripper.STOP_GRIPPING)                                          # close gripper so it fits in a disk
     currentPosition = moveToPosition(currentPosition,Position.TRAY)         # move to the tray
-    gripper(Gripper.GRIP)                                 # grab a disk
+    gripper(Gripper.GRIP)                                                   # grab a disk
+    time.sleep(1)                                                 
     currentPosition = moveToPosition(currentPosition,Position.ABOVE_TRAY)   # move the disk out of the tray
     disk.inject()                                                           # close the tray so its out of the way
-    gripper(Gripper.STOP_GRIPPING)                        # drop the disk
+    time.sleep(1)
+    gripper(Gripper.STOP_GRIPPING)                                          # drop the disk
 
     # try to collect a new disk from the stack and place it in the tray
-    moveToPosition
-
+    currentPosition = moveToPosition(currentPosition,Position.STACK)
+    gripper(Gripper.GRIP)
+    disk.eject()
+    currentPosition = moveToPosition(currentPosition,Position.TRAY)
+    gripper(Gripper.STOP_GRIPPING)
+    currentPosition = moveToPosition(currentPosition,Position.STACK)
+    disk.inject()
+    time.sleep(2)
     # move to safe location so tray can be closed
 
 def cycleMove(dir_pin):
@@ -450,8 +458,9 @@ def gripper(requestedGripAction):
     global pwmGripper
     if requestedGripAction == Gripper.GRIP:
         pwmGripper.start(cfgM["GRIPPER_OPEN"])
+        time.sleep(1)
     elif requestedGripAction == Gripper.STOP_GRIPPING:
         pwmGripper.start(cfgM["GRIPPER_CLOSED"])
     else:
-        pwmGripper.stop()
+        pwmGripper.start(0)
 

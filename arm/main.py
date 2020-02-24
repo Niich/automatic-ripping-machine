@@ -17,6 +17,7 @@ import vgtmpeg
 
 from config import cfg
 from classes import Disc
+from classes import Machine
 from getkeys import grabkeys
 
 
@@ -78,6 +79,18 @@ def log_arm_params(disc):
     logging.info("notify_rip: " + str(cfg['NOTIFY_RIP']))
     logging.info("notify_transcode " + str(cfg['NOTIFY_TRANSCODE']))
     logging.info("**** End of config parameters ****")
+
+def afterRipAction(disk):
+    """Handles the actions to take after a rip is done
+    
+    Options are to just eject the disk or IF a machine is configured
+    a disk change will be called.
+    """
+    if(cfg['MACHINE']):
+        machine = Machine()
+        machine.changeDisk(disk)
+    else:
+        disk.eject()
 
 
 def main(logfile, disc):
@@ -215,7 +228,7 @@ def main(logfile, disc):
             else:
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
 
-            disc.eject()
+            afterRipAction(disc)
             logging.info("ARM bluray processing complete")
 
         elif disc.disctype == "dvd" and not cfg['MAINFEATURE']:
@@ -230,7 +243,7 @@ def main(logfile, disc):
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
 
             logging.info("ARM dvd processing complete")
-            disc.eject()
+            afterRipAction(disc)
 
         elif disc.videotype == "movie" and cfg['MAINFEATURE']:
             if cfg['HANDBRAKE']:
@@ -241,11 +254,11 @@ def main(logfile, disc):
                 utils.notify("ARM notification", "Could not find valid transcoder for: " + str(disc.videotitle))
 
             logging.info("ARM movie processing complete")
-            disc.eject()
+            afterRipAction(disc)
 
         else:
             handbrake.handbrake_all(hbinpath, hboutpath, logfile, disc)
-            disc.eject()
+            afterRipAction(disc)
 
         # report errors if any
         if disc.errors:
@@ -288,10 +301,10 @@ def main(logfile, disc):
 
         if utils.rip_data(disc, datapath, logfile):
             utils.notify("ARM notification", "Data disc: " + disc.label + " copying complete.")
-            disc.eject()
+            afterRipAction(disc)
         else:
             logging.info("Data rip failed.  See previous errors.  Exiting.")
-            disc.eject()
+            afterRipAction(disc)
 
     else:
         logging.info("Couldn't identify the disc type. Exiting without any action.")

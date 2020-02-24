@@ -85,7 +85,7 @@ class Disc(object):
 
         if self.ejected:
             logging.info("Closeing: " + self.devpath)
-            os.system("eject -t" + self.devpath)
+            os.system("eject -t " + self.devpath)
             self.ejected = False
         else:
             logging.info(self.devpath + " is already closed")
@@ -119,7 +119,7 @@ class Machine(object):
             machine.stepMove(direction)
 
     def changeDisk(self,disk):
-        self.position = machine.changeDisk(self.position)
+        self.position = machine.changeDisk(self.position,disk)
 
     def moveToPosition(self,requestedPosition):
         self.position = machine.moveToPosition(self.position,requestedPosition)
